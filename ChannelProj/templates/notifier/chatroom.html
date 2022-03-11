@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Chat Room</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <script src='main.js'></script>
+</head>
+<body>
+    <textarea readonly id="chat-text" cols="30" rows="10"></textarea><hr>
+    <form action="#">
+    <input type="text" id="input" size="80"><hr>
+    <input id="submit" type="submit" value="send"  >
+    </form>
+    
+    {{room_name|json_script:"room-name"}}
+    {{request.user.username|json_script:"username"}}
+</body>
+
+<script>
+    document.querySelector('#submit').onclick = function(e){
+        e.preventDefault();
+        const msgInputDom =  document.querySelector('#input');
+        const msg = msgInputDom.value ;
+        c.send(
+            JSON.stringify({
+                'message' : msg,
+                'username':username,
+            })
+        );
+        msgInputDom.value = '' ;
+    }
+    const roomName = JSON.parse( document.getElementById('room-name').textContent  );
+    const username = JSON.parse( document.getElementById('username').textContent  );
+    const c = new WebSocket(
+        'ws://'+
+        window.location.host+
+        '/ws/chat/'+
+        roomName);
+    c.onmessage = function(event) {
+        var data = JSON.parse(event.data);
+        console.log(data.msg);
+        c_textarea = document.querySelector('#chat-text')
+        c_textarea.value += ( data.username+ ' :> '+ data.msg +'\n' ) ;
+        c_textarea.scrollTop = c_textarea.scrollHeight;
+    }
+</script>
+</html>
